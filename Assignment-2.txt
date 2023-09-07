@@ -1,0 +1,246 @@
+---------------Assignment-2---------------
+
+--------------Single-Table-Retrival--------
+--------------1----------------------------
+1)Find out the names of all the clients
+
+SELECT name FROM Client_master;
+---------------2---------------------------
+2)Print the entire client_master table.
+
+SELECT * from Client_master;
+-----------------3-------------------------
+3)Retrieve the list of names and the cities of all the clients
+
+SELECT name, city FROM Client_master;
+-----------------4-----------------------
+4)List the various products available from the product_master table.
+
+SELECT product_no,description FROM product_master;
+-------------------5-----------------------
+5)Find the names of all clients having ‘a’ as the second letter in their table
+
+SELECT name FROM Client_master WHERE name LIKE '_a%';
+------------------6-----------------------
+6)Find the names of all clients who stay in a city whose second letter is ‘a’
+
+SELECT name FROM Client_master WHERE city LIKE '_a%';
+-------------------7----------------------
+7)Find out the clients who stay in a city ‘Bombay’ or city ‘Delhi’ or city ‘Madras’
+
+SELECT * FROM Client_master WHERE city IN ('Bombay','Delhi','Madras');
+-------------------8----------------------
+8)List all the clients who are located in Bombay.
+
+SELECT * FROM Client_master WHERE city = 'Bombay';
+-------------------9------------------------
+9)Print the list of clients whose bal_due are greater than value 10000
+
+SELECT * FROM Client_master WHERE bal_due > 10000;
+-----------------10------------------------
+10)Print the information from sales_order table of orders placed in the month of January.
+
+SELECT * FROM sales_order WHERE EXTRACT(MONTH FROM s_order_date) = 1;
+----------------11-----------------------------
+11)Display the order information for client_no ‘C00001’ and ‘C00002’
+
+SELECT * FROM sales_order WHERE client_no IN ('C00001','C00002');
+----------------------12---------------------------
+12)Find the products with description as ‘1.44 Drive’ and ‘1.22 Drive’
+
+SELECT product_no,description FROM product_master WHERE description IN ('1.44 Drive' ,'1.22 Drive');
+--------------------------13------------------------
+13)Find the products whose selling price is greater than 2000 and less than or equal to 5000
+
+SELECT product_no,description FROM product_master WHERE sell_price > 2000 AND sell_price <= 5000;
+----------------------------14-----------------------
+14)Find the products whose selling price is more than 1500 and also find the new selling price as original selling price * 15
+
+SELECT product_no, description,sell_price*15 FROM product_master WHERE sell_price > 1500;
+--------------------------15----------------------------
+15)Rename the new column in the above query as new_price
+
+SELECT sell_price*15 as new_price FROM product_master;
+---------------------------16----------------------------
+16)Find the products whose cost price is less than 1500
+
+SELECT product_no, description FROM product_master WHERE cost_price < 1500;
+--------------------------------17-----------------------
+17)List the products in sorted order of their description.
+
+SELECT product_no, description FROM product_master ORDER BY description;
+--------------------18--------------------------------------
+18)Calculate the square root the price of each product.
+
+SELECT SQRT(sell_price), SQRT(cost_price) FROM product_master;
+--------------------------19---------------------------------
+19)Divide the cost of product ‘540 HDD’ by difference between its price and 100
+
+UPDATE product_master SET cost_price = (cost_price/(cost_price-100)) WHERE description = '540 HDD';
+
+-----------------------20-------------------------------------
+20)List the names, city and state of clients not in the state of Maharashtra
+
+SELECT name, city, state from Client_master WHERE NOT state = 'Maharashtra';
+-----------------------21---------------------------------------
+21)List the product_no, description, sell_price of products whose description begin with letter ‘M’
+
+SELECT product_no, description, sell_price FROM product_master WHERE description LIKE 'M%';
+---------------------------22-------------------------------------
+22)List all the orders that were canceled in the month of May
+
+SELECT s_order_no, s_order_date,dely_date from sales_order WHERE EXTRACT(MONTH from dely_date) = 5 AND order_status = 'Canceled';
+
+----------------------------Set Functions and Concatenation-------------------
+
+----------------------23------------------------
+23)Count the total number of orders
+
+SELECT COUNT(product_no) FROM product_master;
+-----------------------24--------------------
+24)Calculate the average price of all the products.
+
+SELECT AVG(sell_price),AVG(cost_price) FROM product_master;
+---------------------25-------------------------
+25)Calculate the minimum price of products.
+
+SELECT MIN(sell_price),MIN(cost_price) FROM product_master;
+-----------------26---------------------------
+26)Determine the maximum and minimum product prices. Rename the title as max_price and min_price respectively.
+
+SELECT MAX(cost_price) AS max_cost_price, MAX(sell_price) AS max_sell_price, MIN(sell_price) AS min_sell_price, MIN(cost_price) AS min_cost_price FROM product_master;
+-----------------------27--------------------
+27)Count the number of products having price greater than or equal to 1500
+
+SELECT COUNT(product_no) FROM product_master WHERE sell_price >= 1500;
+------------------------28----------------------
+28)Find all the products whose qty_on_hand is less than reorder level.
+
+SELECT product_no, description FROM product_master WHERE qty_on_hand < record_lvl ;
+--------------------------29--------------------
+29)Print the information of client_master, product_master, sales_order table in the following formate for all the records
+{cust_name} has placed order {order_no} on {s_order_date}.
+
+SELECT name || ' has placed order '|| s_order_no || ' on ' || s_order_date from Client_master c, sales_order s WHERE s.client_no = c.client_no;
+
+
+-----------------------------------Having and Group By---------------------
+-----------------------------------30---------------------------
+30)Print the description and total qty sold for each product.
+
+SELECT s.product_no, p.description, sum(s.qty_ordered) FROM product_master p,sales_order_details s
+WHERE p.product_no = s.product_no
+GROUP BY s.product_no, p.description;
+----------------------31----------------------------------------
+31)Find the value of each product sold.
+
+SELECT s.product_no, p.description, sum(s.qty_ordered * s.product_rate) FROM product_master p, sales_order_details s
+WHERE p.product_no = s.product_no
+GROUP BY s.product_no, p.description
+--------------------------32------------------------------
+32)Calculate the average qty sold for each client that has a maximum order value of 15000.00
+
+SELECT so.client_no, c.name, AVG(s.qty_disp) FROM sales_order_details s, sales_order so,Client_master c
+WHERE c.client_no = so.client_no AND so.s_order_no = s.s_order_no
+GROUP BY so.client_no, c.name
+HAVING MAX(s.qty_ordered * s.product_rate) > 15000;
+--------------------------33------------------------------------
+33)Find out the total sales amount receivable for the month of jan. it will be the sum total of all the billed orders for the month.
+
+SELECT s.s_order_no, s.s_order_date, sum(so.qty_ordered * so.product_rate),sum(so.qty_disp * so.product_rate) FROM sales_order s, sales_order_details so
+WHERE so.s_order_no = s.s_order_no AND s.billed_yn = 'Y' AND EXTRACT(MONTH FROM s.s_order_date) = 1
+GROUP BY s.s_order_no,s.s_order_date;
+-----------------------------34--------------------------------
+34)	Print the information of product_master, order_detail table in the following format for all the records
+{Description} worth Rs. {Total sales for the product} was sold.
+
+SELECT p.description || ' Worth Rs ' || sum(d.qty_disp*d.product_rate) FROM product_master p, sales_order_details d 
+WHERE p.product_no = d.product_no 
+GROUP BY p.description;
+-------------------------35-----------------------------------
+35)Print the information of product_master, order_detail table in the following format for all the records
+{Description} worth Rs. {Total sales for the product} was produced in the month of {s_order_date} in month formate.
+
+SELECT p.description || ' Worth Rs ' || sum(d.qty_disp * d.product_rate) || ' was produced in the month of '||s.s_order_date 'MONTH' 
+FROM product_master p, sales_order_details d, sales_order s
+WHERE p.product_no = d.product_no AND s.s_order_no = d.s_order_no 
+GROUP BY p.description,s.s_order_date;
+
+----------------------Nested Queries------------------------
+-----------------------36---------------------------
+36)Find the product_no and description of non-moving products.
+
+SELECT p.product_no,p.description
+-------------------------37-------------------------
+37)Find the customer name, address1, address2, city and pin code for the client who has placed order no ‘O19001’
+
+SELECT c.name, c.city,c.pincode FROM Client_master c INNER JOIN sales_order s ON c.client_no = s.client_no WHERE s.s_order_no = 'O19001';
+
+----------------------------38----------------------
+38)Find the client names who have placed orders before the month of May, 1996
+
+SELECT DISTINCT c.name FROM Client_master c INNER JOIN sales_order s ON c.client_no = s.client_no WHERE s.s_order_date < TO_DATE('1996-05-01','YYYY-MM-DD');
+--------------------------39---------------------
+39)Find out if product ‘1.44 Drive’ is ordered by client and print the client_no, name to whom it is was sold.
+
+-------------------40----------------------------
+40)Find the names of clients who have placed orders worth Rs. 10000 or more.
+
+------------------------Queries using Date-----------
+-------------------41-------------------------
+41)Display the order number and day o which clients placed their order.
+
+SELECT s_order_no, TO_CHAR(s_order_date,'Day') AS order_day;
+----------------------42-------------------------
+42)Display the month (in alphabets) and date when the order must deliver.
+
+SELECT TO_CHAR(dely_date,'Month') AS delivery_month, TO_CHAR(dely_date,'DD') AS delivery_day FROM sales_order;
+--------------------------43----------------------
+43)Display the s_order_date in the format ‘DD-MM-YY’. E.g. 12-February-1996 
+
+SELECT TO_CHAR(s_order_date,'DD-MM-YY') AS formatted_date FROM sales_order;
+------------------------44------------------------
+44)Find the date, 15 days after today’s date.
+
+SELECT SYSDATE+15 FROM dual;
+------------------------45------------------------
+45)Find the number of days elapsed between today’s date and the delivery date of the orders placed by the clients.
+
+SELECT s.s_order_no,TO_DATE(s.dely_date, 'YYYY-MM-DD') AS delivery_date,
+TO_DATE(SYSDATE, 'YYYY-MM-DD') AS current_date,TO_DATE(s.dely_date, 'YYYY-MM-DD') - TO_DATE(SYSDATE, 'YYYY-MM-DD') 
+AS days_elapsed FROM sales_order s;
+
+------------------Table Updation--------------------
+--------------------------46---------------------
+46)Change the s_order_date of client_no ‘C00001’ to 24/07/96.
+
+UPDATE sales_order SET s_order_date = TO_DATE('24/07/96', 'DD/MM/YY')
+WHERE client_no = 'C00001';
+-------------------------47-----------------------
+47)Change the selling price of ‘1.44 Floppy Drive’ to Rs. 1150.00
+
+UPDATE product_master SET sell_price = 1150.00 WHERE description = '1.44 Floppy Drive';
+------------------------48------------------------
+48)Delete the records with order number ‘O19001’ from the order table.
+
+DELETE FROM sales_order WHERE s_order_no = 'O19001';
+---------------------49---------------------------
+49)Delete all the records having delivery date before 10th July’96
+
+DELETE FROM sales_order WHERE dely_date < TO_DATE('1996-07-10', 'YYYY-MM-DD');
+----------------------50----------------------------
+50)Change the city of client_no ‘C00005’ to ’Bombay’.
+
+UPDATE client_master SET city = 'Bombay' WHERE client_no = 'C00005';
+---------------------51-----------------------------
+51)Change the delivery date of order number ‘O10008” to 16/08/96
+
+UPDATE Sales_order SET dely_date = TO_DATE('16/08/96', 'DD/MM/YY') WHERE s_order_no = 'O10008';
+------------------------52-------------------------
+52)Change the bal_due of client_no ‘C00001’ to 1000
+
+UPDATE Client_master SET bal_due = 1000 WHERE client_no = 'C00001';
+-------------------53-------------------------------
+53)Change the cost price of ‘1.22 Floppy Drive’ to Rs. 950.00.
+
+UPDATE Product_master SET cost_price = 950.00 WHERE description = '1.22 Floppy Drive';
